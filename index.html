@@ -202,7 +202,7 @@
         </div>
       </div>
 
-      <!-- 結果画面 ＆ 無制限ランキング -->
+      <!-- 結果画面 ＆ 全ユーザー順位無制限ランキング -->
       <div id="result-screen" class="hidden flex-1 flex flex-col justify-between p-4 text-center z-10 overflow-y-auto space-y-3">
         <div class="space-y-3 my-auto">
           <span class="inline-block bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full">
@@ -229,17 +229,17 @@
             <p id="result-description" class="text-xs text-gray-600 leading-relaxed"></p>
           </div>
 
-          <!-- 無制限ランキング表示エリア -->
+          <!-- 全ユーザー共有無制限ランキング表示エリア -->
           <div class="bg-white border border-pink-100 rounded-2xl p-3 shadow-sm text-left space-y-2">
             <div class="flex items-center justify-between border-b border-pink-100 pb-1.5">
               <span class="text-xs font-black text-pink-600 flex items-center gap-1">
-                <i class="fa-solid fa-trophy text-yellow-500"></i> メロ男ランキング (参加者全員)
+                <i class="fa-solid fa-trophy text-yellow-500"></i> 全国ランキング (全プレイヤー順位)
               </span>
-              <button onclick="clearRanking()" class="text-[10px] text-gray-400 hover:text-red-400">リセット</button>
+              <span class="text-[10px] text-gray-400 font-bold" id="total-players-count">全0名</span>
             </div>
             <!-- スクロール可能な無制限ランキング一覧 -->
             <div id="ranking-list" class="space-y-1.5 max-h-44 overflow-y-auto text-xs pr-1">
-              <!-- JSで全員の順位を生成 -->
+              <!-- 全ユーザーの順位が動的ロード -->
             </div>
           </div>
         </div>
@@ -287,7 +287,12 @@
 
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 全15問の初期データ
     const defaultQuizData = [
       { situation: "今日ありがとう！ 楽しかった また遊びたい", options: [{ text: "ありがとう 俺もまた遊びたい", score: 20 }, { text: "ありがとー 俺も楽しかった！", score: 5 }, { text: "ありがとう 次いつ空いてる？", score: 25 }, { text: "明日学校遅れないようにね笑 おやすみ", score: 0 }] },
       { situation: "おやすみー 明日楽しみにしてる♪", options: [{ text: "楽しみで寝れないかも笑", score: 5 }, { text: "俺も おやすみ", score: 20 }, { text: "おやすみ また明日", score: 25 }, { text: "いい夢みてね おやすみ", score: 0 }] },
@@ -315,7 +320,76 @@
     const PIN_CODE = "01170715";
     const MAX_POINT = 355;
 
-    function switchMode(mode) {
+    // Firebase 初期化
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'melo-quiz-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", authDomain: "demo", projectId: "demo" };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let globalRankingData = [];
+
+    // 認証
+    async function initAuth() {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+        listenToGlobalRanking();
+      } catch (e) {
+        console.log("Auth fallback to local storage ranking");
+        loadLocalRanking();
+      }
+    }
+
+    // クラウドから全ユーザーランキングを動的取得
+    function listenToGlobalRanking() {
+      try {
+        const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_rankings');
+        onSnapshot(rankingRef, (snapshot) => {
+          globalRankingData = [];
+          snapshot.forEach((doc) => {
+            globalRankingData.push(doc.data());
+          });
+          // メモリ上でハイスコア順に自動並び替え
+          globalRankingData.sort((a, b) => b.score - a.score);
+          displayRanking();
+        }, (error) => {
+          loadLocalRanking();
+        });
+      } catch(e) {
+        loadLocalRanking();
+      }
+    }
+
+    // クラウドへ結果を同期
+    async function saveGlobalScore(name, score, rank) {
+      const newRecord = { name: name, score: score, rank: rank, date: new Date().toLocaleDateString(), timestamp: Date.now() };
+      
+      // ローカル保存
+      let localRank = JSON.parse(localStorage.getItem('melo_quiz_shared_ranking') || '[]');
+      localRank.push(newRecord);
+      localRank.sort((a, b) => b.score - a.score);
+      localStorage.setItem('melo_quiz_shared_ranking', JSON.stringify(localRank));
+
+      // クラウド保存
+      if (auth.currentUser) {
+        try {
+          const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_rankings');
+          await addDoc(rankingRef, newRecord);
+        } catch(e) {}
+      }
+    }
+
+    function loadLocalRanking() {
+      globalRankingData = JSON.parse(localStorage.getItem('melo_quiz_shared_ranking') || '[]');
+      globalRankingData.sort((a, b) => b.score - a.score);
+      displayRanking();
+    }
+
+    window.switchMode = function(mode) {
       const playMode = document.getElementById('mode-play');
       const editMode = document.getElementById('mode-edit');
       const tabPlay = document.getElementById('tab-play');
@@ -345,18 +419,18 @@
       const pinInput = document.getElementById('pin-input');
       pinInput.value = '';
       modal.classList.remove('hidden');
-      setTimeout(function() { pinInput.focus(); }, 100);
+      setTimeout(() => pinInput.focus(), 100);
 
       pinInput.onkeyup = function(e) {
         if (e.key === 'Enter') verifyPin();
       };
     }
 
-    function closePinModal() {
+    window.closePinModal = function() {
       document.getElementById('pin-modal').classList.add('hidden');
     }
 
-    function verifyPin() {
+    window.verifyPin = function() {
       const pinInput = document.getElementById('pin-input');
       if (pinInput.value === PIN_CODE) {
         isUnlocked = true;
@@ -370,13 +444,13 @@
       }
     }
 
-    function lockEditMode() {
+    window.lockEditMode = function() {
       isUnlocked = false;
       showToast("編集モードをロックしました 🔒");
       switchMode('play');
     }
 
-    function startQuiz() {
+    window.startQuiz = function() {
       const nameInput = document.getElementById('user-name-input').value.trim();
       playerName = nameInput ? nameInput : "匿名プレイヤー";
       document.getElementById('player-display-name').innerText = playerName;
@@ -460,7 +534,7 @@
       }
     }
 
-    function nextQuestion() {
+    window.nextQuestion = function() {
       currentQuestionIndex++;
       if (currentQuestionIndex < window.quizData.length) {
         loadQuestion();
@@ -515,63 +589,46 @@
 
       titleElem.innerText = rankTitle;
 
-      saveToRanking(playerName, totalScore, rankTitle);
-      displayRanking();
-    }
-
-    function saveToRanking(name, score, rank) {
-      try {
-        let ranking = JSON.parse(localStorage.getItem('melo_quiz_ranking') || '[]');
-        ranking.push({ name: name, score: score, rank: rank, date: new Date().toLocaleDateString() });
-        ranking.sort(function(a, b) { return b.score - a.score; });
-        localStorage.setItem('melo_quiz_ranking', JSON.stringify(ranking));
-      } catch(e) {}
+      saveGlobalScore(playerName, totalScore, rankTitle);
     }
 
     function displayRanking() {
       const listElem = document.getElementById('ranking-list');
+      const countElem = document.getElementById('total-players-count');
+      if (!listElem) return;
+
       listElem.innerHTML = '';
-      try {
-        const ranking = JSON.parse(localStorage.getItem('melo_quiz_ranking') || '[]');
-        if (ranking.length === 0) {
-          listElem.innerHTML = '<p class="text-gray-400 text-center py-2">まだ記録がありません</p>';
-          return;
-        }
+      countElem.innerText = "全" + globalRankingData.length + "名";
 
-        ranking.forEach(function(item, index) {
-          const rankNum = index + 1;
-          let rankBadge = rankNum + '位';
-          if (rankNum === 1) rankBadge = '🥇';
-          else if (rankNum === 2) rankBadge = '🥈';
-          else if (rankNum === 3) rankBadge = '🥉';
-
-          const row = document.createElement('div');
-          row.className = "flex justify-between items-center bg-pink-50/50 p-2 rounded-xl border border-pink-100 font-bold";
-          row.innerHTML = `
-            <div class="flex items-center gap-1.5 overflow-hidden">
-              <span class="text-xs shrink-0 font-black text-pink-500 w-6 text-center">${rankBadge}</span>
-              <span class="truncate text-gray-700">${item.name}</span>
-            </div>
-            <div class="shrink-0 text-pink-600 font-black text-right">
-              ${item.score} <span class="text-[9px] font-normal">pt</span>
-            </div>
-          `;
-          listElem.appendChild(row);
-        });
-      } catch(e) {
-        listElem.innerHTML = '<p class="text-gray-400 text-center py-2">読み込み失敗</p>';
+      if (globalRankingData.length === 0) {
+        listElem.innerHTML = '<p class="text-gray-400 text-center py-2">まだプレイデータがありません</p>';
+        return;
       }
+
+      // 順位制限なし：全員を表示
+      globalRankingData.forEach(function(item, index) {
+        const rankNum = index + 1;
+        let rankBadge = rankNum + '位';
+        if (rankNum === 1) rankBadge = '🥇';
+        else if (rankNum === 2) rankBadge = '🥈';
+        else if (rankNum === 3) rankBadge = '🥉';
+
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center bg-pink-50/50 p-2 rounded-xl border border-pink-100 font-bold";
+        row.innerHTML = `
+          <div class="flex items-center gap-1.5 overflow-hidden">
+            <span class="text-xs shrink-0 font-black text-pink-500 w-6 text-center">${rankBadge}</span>
+            <span class="truncate text-gray-700">${item.name}</span>
+          </div>
+          <div class="shrink-0 text-pink-600 font-black text-right">
+            ${item.score} <span class="text-[9px] font-normal">pt</span>
+          </div>
+        `;
+        listElem.appendChild(row);
+      });
     }
 
-    function clearRanking() {
-      if (confirm("ランキングをリセットしますか？")) {
-        localStorage.removeItem('melo_quiz_ranking');
-        displayRanking();
-        showToast("ランキングをリセットしました");
-      }
-    }
-
-    function resetQuiz() {
+    window.resetQuiz = function() {
       document.getElementById('result-screen').classList.add('hidden');
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
@@ -579,7 +636,7 @@
       document.getElementById('current-score-text').innerText = '0pt / 355pt';
     }
 
-    function shareResult() {
+    window.shareResult = function() {
       const title = document.getElementById('result-title').innerText;
       const shareText = "【メロ男診断】\n" + playerName + "さんのメロポイントは… 【" + totalScore + "pt / 355pt】（" + title + "）でした！\n#メロ男診断";
       const tempInput = document.createElement("textarea");
@@ -631,19 +688,19 @@
       });
     }
 
-    function updateQuestionSituation(qIndex, val) {
+    window.updateQuestionSituation = function(qIndex, val) {
       window.quizData[qIndex].situation = val;
     }
 
-    function updateOptionText(qIndex, oIndex, val) {
+    window.updateOptionText = function(qIndex, oIndex, val) {
       window.quizData[qIndex].options[oIndex].text = val;
     }
 
-    function updateOptionScore(qIndex, oIndex, val) {
+    window.updateOptionScore = function(qIndex, oIndex, val) {
       window.quizData[qIndex].options[oIndex].score = parseInt(val, 10) || 0;
     }
 
-    function addNewQuestionPrompt() {
+    window.addNewQuestionPrompt = function() {
       window.quizData.push({
         situation: "新しいメッセージ内容を入力してください",
         options: [
@@ -657,7 +714,7 @@
       showToast("新しい質問を追加しました！");
     }
 
-    function deleteQuestion(index) {
+    window.deleteQuestion = function(index) {
       if (window.quizData.length <= 1) {
         showToast("質問は最低1件必要です！");
         return;
@@ -666,7 +723,7 @@
       renderEditList();
     }
 
-    function saveQuizDataToCloud() {
+    window.saveQuizDataToCloud = function() {
       try {
         localStorage.setItem('melo_quiz_saved_data', JSON.stringify(window.quizData));
         showToast("質問データを保存しました！✨");
@@ -694,6 +751,7 @@
 
     window.onload = function() {
       loadSavedQuizData();
+      initAuth();
     };
   </script>
 </body>
