@@ -66,9 +66,9 @@
 <body class="flex items-center justify-center p-2 sm:p-4 min-h-screen text-slate-800">
 
   <!-- メインコンテナ -->
-  <div id="app" class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/60 flex flex-col h-[700px] relative">
+  <div id="app" class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-white/60 flex flex-col h-[750px] relative">
     
-    <!-- PIN入力モーダル (暗証番号保護) -->
+    <!-- PIN入力モーダル -->
     <div id="pin-modal" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-pop">
       <div class="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl border border-pink-100 text-center space-y-4 relative">
         <button onclick="closePinModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1">
@@ -117,7 +117,7 @@
     <div id="mode-play" class="flex-1 flex flex-col overflow-hidden relative">
       <!-- スタート画面 -->
       <div id="start-screen" class="flex-1 flex flex-col justify-between p-6 text-center z-10 overflow-y-auto">
-        <div class="my-auto space-y-6 py-4">
+        <div class="my-auto space-y-5 py-2">
           <div class="relative inline-block">
             <span class="inline-block bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full mb-2 animate-bounce">
               💖 女子をキュンとさせろ！
@@ -128,20 +128,20 @@
             <p class="text-xs text-pink-400 font-bold mt-1">〜返答1つでメロポイントが上昇〜</p>
           </div>
 
-          <div class="relative w-28 h-28 mx-auto">
+          <div class="relative w-24 h-24 mx-auto">
             <div class="absolute inset-0 bg-pink-300 rounded-full blur-xl opacity-50 animate-pulse"></div>
             <div class="relative w-full h-full rounded-full bg-gradient-to-tr from-pink-400 to-purple-400 flex items-center justify-center shadow-lg border-4 border-white text-4xl">
               🕺✨
             </div>
           </div>
 
-          <p class="text-gray-600 text-xs leading-relaxed px-4">
-            女の子からのあざといLINEにどう返す？<br>
-            最高の返答を選んで満点190ptを目指そう！
-          </p>
+          <div class="space-y-2 px-2 text-left">
+            <label class="block text-xs font-bold text-gray-500 ml-1">診断を受ける人の名前</label>
+            <input type="text" id="user-name-input" placeholder="名前またはニックネームを入力" maxlength="10" class="w-full text-center text-sm font-bold py-3 px-4 border-2 border-pink-200 rounded-2xl focus:outline-none focus:border-pink-500 bg-white text-gray-700 shadow-sm">
+          </div>
         </div>
 
-        <div class="space-y-2 shrink-0">
+        <div class="space-y-2 shrink-0 pt-2">
           <button onclick="startQuiz()" class="w-full py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-lg shadow-pink-500/30 transform active:scale-95 transition-all text-base flex items-center justify-center gap-2">
             <span>診断スタート</span>
             <i class="fa-solid fa-circle-play"></i>
@@ -159,7 +159,7 @@
             <div class="flex items-center gap-1">
               <i class="fa-solid fa-fire text-pink-500 text-xs"></i>
               <span class="text-xs text-gray-400 font-bold">現在の獲得:</span>
-              <span id="current-score-text" class="text-base font-black text-pink-600">0pt / 190pt</span>
+              <span id="current-score-text" class="text-base font-black text-pink-600">0pt / 355pt</span>
             </div>
           </div>
           <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden border border-pink-100">
@@ -180,7 +180,7 @@
 
           <div id="user-reply-container" class="hidden flex gap-2.5 items-start justify-end animate-pop">
             <div class="flex flex-col items-end max-w-[85%]">
-              <span class="text-[10px] text-gray-400 mb-0.5 mr-1 font-bold">あなた</span>
+              <span id="player-display-name" class="text-[10px] text-gray-400 mb-0.5 mr-1 font-bold">あなた</span>
               <div id="user-reply-text" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs sm:text-sm font-medium p-3 rounded-2xl rounded-tr-none shadow-sm leading-relaxed"></div>
               <div id="reply-feedback" class="text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full"></div>
             </div>
@@ -202,40 +202,56 @@
         </div>
       </div>
 
-      <!-- 結果画面 -->
-      <div id="result-screen" class="hidden flex-1 flex flex-col justify-between p-6 text-center z-10 overflow-y-auto">
-        <div class="space-y-4 my-auto">
+      <!-- 結果画面 ＆ 無制限ランキング -->
+      <div id="result-screen" class="hidden flex-1 flex flex-col justify-between p-4 text-center z-10 overflow-y-auto space-y-3">
+        <div class="space-y-3 my-auto">
           <span class="inline-block bg-pink-100 text-pink-600 text-xs font-bold px-3 py-1 rounded-full">
-            ✨ 診断完了 ✨
+            ✨ 診断結果 ✨
           </span>
 
+          <p id="result-player-name" class="text-sm font-black text-gray-700"></p>
+
           <div>
-            <p class="text-xs font-bold text-gray-400">最終獲得スコア</p>
-            <div class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 my-1">
-              <span id="final-score">0</span> <span class="text-2xl font-bold text-pink-500">/ 190pt</span>
+            <p class="text-[11px] font-bold text-gray-400">最終獲得スコア</p>
+            <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 my-0.5">
+              <span id="final-score">0</span> <span class="text-lg font-bold text-pink-500">/ 355pt</span>
             </div>
           </div>
 
           <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-0.5 rounded-2xl shadow-md">
-            <div class="bg-white rounded-[14px] p-3.5">
+            <div class="bg-white rounded-[14px] p-3">
               <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">獲得称号</span>
-              <h2 id="result-title" class="text-xl font-black text-pink-600 mt-0.5">国宝級メロ男</h2>
+              <h2 id="result-title" class="text-base font-black text-pink-600 mt-0.5"></h2>
             </div>
           </div>
 
-          <div class="bg-white/80 border border-pink-100 rounded-xl p-3.5 text-left shadow-sm">
+          <div class="bg-white/80 border border-pink-100 rounded-xl p-3 text-left shadow-sm">
             <p id="result-description" class="text-xs text-gray-600 leading-relaxed"></p>
+          </div>
+
+          <!-- 無制限ランキング表示エリア -->
+          <div class="bg-white border border-pink-100 rounded-2xl p-3 shadow-sm text-left space-y-2">
+            <div class="flex items-center justify-between border-b border-pink-100 pb-1.5">
+              <span class="text-xs font-black text-pink-600 flex items-center gap-1">
+                <i class="fa-solid fa-trophy text-yellow-500"></i> メロ男ランキング (参加者全員)
+              </span>
+              <button onclick="clearRanking()" class="text-[10px] text-gray-400 hover:text-red-400">リセット</button>
+            </div>
+            <!-- スクロール可能な無制限ランキング一覧 -->
+            <div id="ranking-list" class="space-y-1.5 max-h-44 overflow-y-auto text-xs pr-1">
+              <!-- JSで全員の順位を生成 -->
+            </div>
           </div>
         </div>
 
-        <div class="space-y-2 pt-3 border-t border-pink-100 shrink-0">
-          <button onclick="shareResult()" class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transform active:scale-95 transition-all">
+        <div class="space-y-2 shrink-0 border-t border-pink-100 pt-2">
+          <button onclick="shareResult()" class="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transform active:scale-95 transition-all">
             <i class="fa-solid fa-share-nodes"></i>
             <span>結果をコピーしてシェア</span>
           </button>
-          <button onclick="resetQuiz()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-1.5">
+          <button onclick="resetQuiz()" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-1.5">
             <i class="fa-solid fa-rotate-left"></i>
-            <span>もう一度遊ぶ</span>
+            <span>もう一度診断する</span>
           </button>
         </div>
       </div>
@@ -272,152 +288,32 @@
   </div>
 
   <script>
-    // 全15問の初期データ（合計最高得点: 190pt）
     const defaultQuizData = [
-      {
-        situation: "今日ありがとう！ 楽しかった また遊びたい",
-        options: [
-          { text: "ありがとう 俺もまた遊びたい", score: 20 },
-          { text: "ありがとー 俺も楽しかった！", score: 5 },
-          { text: "ありがとう 次いつ空いてる？", score: 25 },
-          { text: "明日学校遅れないようにね笑 おやすみ", score: 0 }
-        ]
-      },
-      {
-        situation: "おやすみー 明日楽しみにしてる♪",
-        options: [
-          { text: "楽しみで寝れないかも笑", score: 5 },
-          { text: "俺も おやすみ", score: 20 },
-          { text: "おやすみ また明日", score: 25 },
-          { text: "いい夢みてね おやすみ", score: 0 }
-        ]
-      },
-      {
-        situation: "元カノとかいるの？",
-        options: [
-          { text: "いないよ笑", score: 3 },
-          { text: "1人いるよ", score: 25 },
-          { text: "まじでモテない笑", score: 0 },
-          { text: "1人いるけどなんも覚えてない笑", score: 0 }
-        ]
-      },
-      {
-        situation: "髪切ったんだけど気づいた？",
-        options: [
-          { text: "気づいてたよ笑 似合ってる", score: 15 },
-          { text: "まじで良かった みんな可愛いって言ってた", score: 0 },
-          { text: "ちらっと見た 明日ちゃんと見る", score: 25 },
-          { text: "破壊力エグかったよ 可愛いね", score: 0 }
-        ]
-      },
-      {
-        situation: "趣味とかある？いつも何してるの",
-        options: [
-          { text: "特にないんだよね笑 アニメとか？", score: 10 },
-          { text: "ずっとスマホ見てる笑", score: 3 },
-          { text: "しょうもないことばっかしてる気がする", score: 25 },
-          { text: "服見るのとか好きなんだよね", score: 0 }
-        ]
-      },
-      {
-        situation: "タイプとかある？",
-        options: [
-          { text: "好きになった人がタイプだよ", score: 5 },
-          { text: "黒髪ボブかなー", score: 0 },
-          { text: "話してて楽しい人", score: 15 },
-          { text: "よく笑う人が好き", score: 20 }
-        ]
-      },
-      {
-        situation: "アイドル好きなんだ！誰推し？",
-        options: [
-          { text: "まなふぃ", score: 20 },
-          { text: "野口衣織", score: 15 },
-          { text: "tenちゃん", score: 5 },
-          { text: "ウィンター", score: 0 }
-        ]
-      },
-      {
-        situation: "アニメとか見るんだ！オススメは？",
-        options: [
-          { text: "BLEACHかな", score: 25 },
-          { text: "無職転生 面白いよ", score: 0 },
-          { text: "ジョジョかな みんなかっこいい", score: 10 },
-          { text: "ブルーロック", score: 0 }
-        ]
-      },
-      {
-        situation: "デートの服装は？",
-        options: [
-          { text: "ロングコートとタートルネックで大人っぽく", score: 10 },
-          { text: "パーカーとカーゴパンツでストリート系に", score: 2 },
-          { text: "シャツとカーディガンでインテリ系に", score: 0 },
-          { text: "シャツとセーターを重ね着して意識高めに", score: 20 }
-        ]
-      },
-      {
-        situation: "野球好きなんだ！好きな球団は？",
-        options: [
-          { text: "阪神かな 親が好きで昔から", score: 25 },
-          { text: "ベイスターズ！ よく現地も行くよ", score: 15 },
-          { text: "ソフトバンク 最近優勝したよ", score: 5 },
-          { text: "日本ハムかな 新庄いるとこわかる？", score: 0 }
-        ]
-      },
-      {
-        situation: "テストの点数何点だった？（100点満点）",
-        options: [
-          { text: "勝負しよ笑 俺16点", score: 0 },
-          { text: "やばすぎて言えない笑（30点）", score: 0 },
-          { text: "平均くらい", score: 10 },
-          { text: "思ったより良かったかも（90点）", score: 25 }
-        ]
-      },
-      {
-        situation: "今日の服、どう？",
-        options: [
-          { text: "可愛い", score: 25 },
-          { text: "似合ってる", score: 15 },
-          { text: "俺の好きな感じだ", score: 0 },
-          { text: "まじで良い", score: 0 }
-        ]
-      },
-      {
-        situation: "バンドはじめたらなんの楽器がいい？",
-        options: [
-          { text: "ギターボーカル", score: 0 },
-          { text: "ベース", score: 20 },
-          { text: "ドラム", score: 15 },
-          { text: "キーボード", score: 0 }
-        ]
-      },
-      {
-        situation: "彼女の誕生日プレゼントにあげるものは？",
-        options: [
-          { text: "リファのコーム", score: 0 },
-          { text: "アイシャドウパレット", score: 0 },
-          { text: "お揃いのマフラー", score: 15 },
-          { text: "ちょっと高めのピアス", score: 25 }
-        ]
-      },
-      {
-        situation: "どこの塾行ってるの？",
-        options: [
-          { text: "臨海セミナー", score: 0 },
-          { text: "河合塾", score: 15 },
-          { text: "東進", score: 5 },
-          { text: "駿台", score: 25 }
-        ]
-      }
+      { situation: "今日ありがとう！ 楽しかった また遊びたい", options: [{ text: "ありがとう 俺もまた遊びたい", score: 20 }, { text: "ありがとー 俺も楽しかった！", score: 5 }, { text: "ありがとう 次いつ空いてる？", score: 25 }, { text: "明日学校遅れないようにね笑 おやすみ", score: 0 }] },
+      { situation: "おやすみー 明日楽しみにしてる♪", options: [{ text: "楽しみで寝れないかも笑", score: 5 }, { text: "俺も おやすみ", score: 20 }, { text: "おやすみ また明日", score: 25 }, { text: "いい夢みてね おやすみ", score: 0 }] },
+      { situation: "元カノとかいるの？", options: [{ text: "いないよ笑", score: 3 }, { text: "1人いるよ", score: 25 }, { text: "まじでモテない笑", score: 0 }, { text: "1人いるけどなんも覚えてない笑", score: 0 }] },
+      { situation: "髪切ったんだけど気づいた？", options: [{ text: "気づいてたよ笑 似合ってる", score: 15 }, { text: "まじで良かった みんな可愛いって言ってた", score: 0 }, { text: "ちらっと見た 明日ちゃんと見る", score: 25 }, { text: "破壊力エグかったよ 可愛いね", score: 0 }] },
+      { situation: "趣味とかある？いつも何してるの", options: [{ text: "特にないんだよね笑 アニメとか？", score: 10 }, { text: "ずっとスマホ見てる笑", score: 3 }, { text: "しょうもないことばっかしてる気がする", score: 25 }, { text: "服見るのとか好きなんだよね", score: 0 }] },
+      { situation: "タイプとかある？", options: [{ text: "好きになった人がタイプだよ", score: 5 }, { text: "黒髪ボブかなー", score: 0 }, { text: "話してて楽しい人", score: 15 }, { text: "よく笑う人が好き", score: 20 }] },
+      { situation: "アイドル好きなんだ！誰推し？", options: [{ text: "まなふぃ", score: 20 }, { text: "野口衣織", score: 15 }, { text: "tenちゃん", score: 5 }, { text: "ウィンター", score: 0 }] },
+      { situation: "アニメとか見るんだ！オススメは？", options: [{ text: "BLEACHかな", score: 25 }, { text: "無職転生 面白いよ", score: 0 }, { text: "ジョジョかな みんなかっこいい", score: 10 }, { text: "ブルーロック", score: 0 }] },
+      { situation: "デートの服装は？", options: [{ text: "ロングコートとタートルネックで大人っぽく", score: 10 }, { text: "パーカーとカーゴパンツでストリート系に", score: 2 }, { text: "シャツとカーディガンでインテリ系に", score: 0 }, { text: "シャツとセーターを重ね着して意識高めに", score: 20 }] },
+      { situation: "野球好きなんだ！好きな球団は？", options: [{ text: "阪神かな 親が好きで昔から", score: 25 }, { text: "ベイスターズ！ よく現地も行くよ", score: 15 }, { text: "ソフトバンク 最近優勝したよ", score: 5 }, { text: "日本ハムかな 新庄いるとこわかる？", score: 0 }] },
+      { situation: "テストの点数何点だった？（100点満点）", options: [{ text: "勝負しよ笑 俺16点", score: 0 }, { text: "やばすぎて言えない笑（30点）", score: 0 }, { text: "平均くらい", score: 10 }, { text: "思ったより良かったかも（90点）", score: 25 }] },
+      { situation: "今日の服、どう？", options: [{ text: "可愛い", score: 25 }, { text: "似合ってる", score: 15 }, { text: "俺の好きな感じだ", score: 0 }, { text: "まじで良い", score: 0 }] },
+      { situation: "バンドはじめたらなんの楽器がいい？", options: [{ text: "ギターボーカル", score: 0 }, { text: "ベース", score: 20 }, { text: "ドラム", score: 15 }, { text: "キーボード", score: 0 }] },
+      { situation: "彼女の誕生日プレゼントにあげるものは？", options: [{ text: "リファのコーム", score: 0 }, { text: "アイシャドウパレット", score: 0 }, { text: "お揃いのマフラー", score: 15 }, { text: "ちょっと高めのピアス", score: 25 }] },
+      { situation: "どこの塾行ってるの？", options: [{ text: "臨海セミナー", score: 0 }, { text: "河合塾", score: 15 }, { text: "東進", score: 5 }, { text: "駿台", score: 25 }] }
     ];
 
     window.quizData = JSON.parse(JSON.stringify(defaultQuizData));
 
     let currentQuestionIndex = 0;
     let totalScore = 0;
+    let playerName = "あなた";
     let isUnlocked = false;
     const PIN_CODE = "01170715";
-    const MAX_POINT = 190; // 満点ポイント
+    const MAX_POINT = 355;
 
     function switchMode(mode) {
       const playMode = document.getElementById('mode-play');
@@ -449,7 +345,7 @@
       const pinInput = document.getElementById('pin-input');
       pinInput.value = '';
       modal.classList.remove('hidden');
-      setTimeout(() => pinInput.focus(), 100);
+      setTimeout(function() { pinInput.focus(); }, 100);
 
       pinInput.onkeyup = function(e) {
         if (e.key === 'Enter') verifyPin();
@@ -481,6 +377,10 @@
     }
 
     function startQuiz() {
+      const nameInput = document.getElementById('user-name-input').value.trim();
+      playerName = nameInput ? nameInput : "匿名プレイヤー";
+      document.getElementById('player-display-name').innerText = playerName;
+
       if (!window.quizData || window.quizData.length === 0) {
         showToast("質問が登録されていません。「クイズ編集」から追加してください！");
         return;
@@ -518,7 +418,6 @@
     function selectOption(option) {
       totalScore += option.score;
 
-      // 現在の獲得ポイントとメーター表示
       const currentPercent = Math.min(100, Math.round((totalScore / MAX_POINT) * 100));
       document.getElementById('score-bar').style.width = currentPercent + '%';
       document.getElementById('current-score-text').innerText = totalScore + 'pt / ' + MAX_POINT + 'pt';
@@ -574,6 +473,7 @@
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
+      document.getElementById('result-player-name').innerText = "👤 " + playerName + " さんの結果";
       const scoreElem = document.getElementById('final-score');
       const titleElem = document.getElementById('result-title');
       const descElem = document.getElementById('result-description');
@@ -587,21 +487,87 @@
           currentDisplayScore++;
           scoreElem.innerText = currentDisplayScore;
         }
-      }, 10);
+      }, 8);
 
-      // 190pt満点に基づくランク評価
-      if (totalScore >= 170) {
-        titleElem.innerText = "👑 限界メロ男 (170pt〜190pt)";
-        descElem.innerText = "すべての言葉が女子のツボを突きまくる完璧なメロ男！一緒に入るだけで周りを胸キュンで包み込む罪な存在です。";
-      } else if (totalScore >= 120) {
-        titleElem.innerText = "✨ 隠れメロ男 (120pt〜169pt)";
-        descElem.innerText = "さりげない優しさとセンスのある返しができるタイプ！ふとした瞬間の甘い一言に女子はギャップ萌えしています。";
-      } else if (totalScore >= 60) {
-        titleElem.innerText = "🌱 ピュアな普通男 (60pt〜119pt)";
-        descElem.innerText = "誠実だけどちょっぴりシャイ。もう少し甘い言葉や「特別感」を伝える工夫をすると一気にメロ度がアップします！";
+      let rankTitle = "";
+      if (totalScore >= 330) {
+        rankTitle = "👑 国宝級・全人類メロメロ男 (SSS)";
+        descElem.innerText = "すべての返答が神レベル！女子を即メロメロにする最強の男。息をしてるだけで全員沼ります。";
+      } else if (totalScore >= 280) {
+        rankTitle = "💎 沼らせ確定・限界メロ男 (S)";
+        descElem.innerText = "狙ってないのに女子を沼らせちゃう罪なメロ男！一言一言の破壊力がズバ抜けています。";
+      } else if (totalScore >= 230) {
+        rankTitle = "✨ モテの極み・隠れメロ男 (A)";
+        descElem.innerText = "さりげない優しさとセンス抜群の返しができるイケメン！ふとしたギャップに女子は胸キュン。";
+      } else if (totalScore >= 170) {
+        rankTitle = "🌸 愛され系・ピュアな普通男 (B)";
+        descElem.innerText = "誠実で安心感があるタイプ。もう少し「特別感」をプラスすると一気にメロ度が爆上がりします！";
+      } else if (totalScore >= 110) {
+        rankTitle = "😅 惜しい！ツンデレストイック男 (C)";
+        descElem.innerText = "悪気はないけどちょっと不器用。素直になれないところが逆にギャップ…かも？";
+      } else if (totalScore >= 50) {
+        rankTitle = "🗿 鉄壁・男友情優先マン (D)";
+        descElem.innerText = "友達としては最高だけど、メロ度は低め！男ノリを封印して女子目線を意識してみよう。";
       } else {
-        titleElem.innerText = "🗿 鋼鉄のストイック男 (0pt〜59pt)";
-        descElem.innerText = "正論・現実的な返しが得意なストイックタイプ！メロ度は低めですが、嘘のない信頼感で勝負するタイプです。";
+        rankTitle = "🧊 絶対零度・塩対応男 (F)";
+        descElem.innerText = "逆にすがすがしいほどの超・塩対応！女子のあざとさをすべて撃ち落とす鉄壁の男です。";
+      }
+
+      titleElem.innerText = rankTitle;
+
+      saveToRanking(playerName, totalScore, rankTitle);
+      displayRanking();
+    }
+
+    function saveToRanking(name, score, rank) {
+      try {
+        let ranking = JSON.parse(localStorage.getItem('melo_quiz_ranking') || '[]');
+        ranking.push({ name: name, score: score, rank: rank, date: new Date().toLocaleDateString() });
+        ranking.sort(function(a, b) { return b.score - a.score; });
+        localStorage.setItem('melo_quiz_ranking', JSON.stringify(ranking));
+      } catch(e) {}
+    }
+
+    function displayRanking() {
+      const listElem = document.getElementById('ranking-list');
+      listElem.innerHTML = '';
+      try {
+        const ranking = JSON.parse(localStorage.getItem('melo_quiz_ranking') || '[]');
+        if (ranking.length === 0) {
+          listElem.innerHTML = '<p class="text-gray-400 text-center py-2">まだ記録がありません</p>';
+          return;
+        }
+
+        ranking.forEach(function(item, index) {
+          const rankNum = index + 1;
+          let rankBadge = rankNum + '位';
+          if (rankNum === 1) rankBadge = '🥇';
+          else if (rankNum === 2) rankBadge = '🥈';
+          else if (rankNum === 3) rankBadge = '🥉';
+
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center bg-pink-50/50 p-2 rounded-xl border border-pink-100 font-bold";
+          row.innerHTML = `
+            <div class="flex items-center gap-1.5 overflow-hidden">
+              <span class="text-xs shrink-0 font-black text-pink-500 w-6 text-center">${rankBadge}</span>
+              <span class="truncate text-gray-700">${item.name}</span>
+            </div>
+            <div class="shrink-0 text-pink-600 font-black text-right">
+              ${item.score} <span class="text-[9px] font-normal">pt</span>
+            </div>
+          `;
+          listElem.appendChild(row);
+        });
+      } catch(e) {
+        listElem.innerHTML = '<p class="text-gray-400 text-center py-2">読み込み失敗</p>';
+      }
+    }
+
+    function clearRanking() {
+      if (confirm("ランキングをリセットしますか？")) {
+        localStorage.removeItem('melo_quiz_ranking');
+        displayRanking();
+        showToast("ランキングをリセットしました");
       }
     }
 
@@ -610,12 +576,12 @@
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
       document.getElementById('score-bar').style.width = '0%';
-      document.getElementById('current-score-text').innerText = '0pt / 190pt';
+      document.getElementById('current-score-text').innerText = '0pt / 355pt';
     }
 
     function shareResult() {
       const title = document.getElementById('result-title').innerText;
-      const shareText = "【メロ男診断】\n私のメロポイントは… 【" + totalScore + "pt / 190pt】（称号: " + title + "）でした！\n#メロ男診断";
+      const shareText = "【メロ男診断】\n" + playerName + "さんのメロポイントは… 【" + totalScore + "pt / 355pt】（" + title + "）でした！\n#メロ男診断";
       const tempInput = document.createElement("textarea");
       tempInput.value = shareText;
       document.body.appendChild(tempInput);
