@@ -339,24 +339,33 @@
         }
         listenToGlobalRanking();
       } catch (e) {
-        console.log("Auth fallback to local storage ranking");
+        console.log("Auth fallback to local storage ranking", e);
         loadLocalRanking();
       }
     }
 
-    // クラウドから全ユーザーランキングを動的取得
+    // クラウドから全ユーザーランキングをリアルタイム取得（順位無制限）
     function listenToGlobalRanking() {
       try {
         const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_rankings');
         onSnapshot(rankingRef, (snapshot) => {
-          globalRankingData = [];
+          const map = new Map();
           snapshot.forEach((doc) => {
-            globalRankingData.push(doc.data());
+            const data = doc.data();
+            if (data && data.name) {
+              // 同一ユーザー名がある場合は高いスコアを優先
+              const existing = map.get(data.name);
+              if (!existing || data.score > existing.score) {
+                map.set(data.name, data);
+              }
+            }
           });
-          // メモリ上でハイスコア順に自動並び替え
-          globalRankingData.sort((a, b) => b.score - a.score);
+          globalRankingData = Array.from(map.values());
+          // メモリ上でスコア順にソート（同点は新しい順）
+          globalRankingData.sort((a, b) => (b.score - a.score) || ((b.timestamp || 0) - (a.timestamp || 0)));
           displayRanking();
         }, (error) => {
+          console.log("Firestore error, switching to local backup", error);
           loadLocalRanking();
         });
       } catch(e) {
@@ -364,22 +373,31 @@
       }
     }
 
-    // クラウドへ結果を同期
+    // クラウドへ結果をリアルタイム送信
     async function saveGlobalScore(name, score, rank) {
-      const newRecord = { name: name, score: score, rank: rank, date: new Date().toLocaleDateString(), timestamp: Date.now() };
+      const newRecord = { 
+        name: name, 
+        score: score, 
+        rank: rank, 
+        date: new Date().toLocaleDateString(), 
+        timestamp: Date.now() 
+      };
       
-      // ローカル保存
+      // ローカル保存（バックアップ）
       let localRank = JSON.parse(localStorage.getItem('melo_quiz_shared_ranking') || '[]');
       localRank.push(newRecord);
       localRank.sort((a, b) => b.score - a.score);
       localStorage.setItem('melo_quiz_shared_ranking', JSON.stringify(localRank));
 
-      // クラウド保存
-      if (auth.currentUser) {
-        try {
-          const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_rankings');
-          await addDoc(rankingRef, newRecord);
-        } catch(e) {}
+      // クラウド（オンライン共有）保存
+      try {
+        if (!auth.currentUser) {
+          await signInAnonymously(auth);
+        }
+        const rankingRef = collection(db, 'artifacts', appId, 'public', 'data', 'global_rankings');
+        await addDoc(rankingRef, newRecord);
+      } catch(e) {
+        console.log("Failed to push global score online", e);
       }
     }
 
