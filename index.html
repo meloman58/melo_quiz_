@@ -125,7 +125,7 @@
             <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 tracking-tight">
               メロ男診断
             </h1>
-            <p class="text-xs text-pink-400 font-bold mt-1">〜返答1つでメロ度が急上昇〜</p>
+            <p class="text-xs text-pink-400 font-bold mt-1">〜返答1つでメロポイントが上昇〜</p>
           </div>
 
           <div class="relative w-28 h-28 mx-auto">
@@ -137,7 +137,7 @@
 
           <p class="text-gray-600 text-xs leading-relaxed px-4">
             女の子からのあざといLINEにどう返す？<br>
-            最高の返答を選んでメロ度100%を目指そう！
+            最高の返答を選んで満点190ptを目指そう！
           </p>
         </div>
 
@@ -158,8 +158,8 @@
             </span>
             <div class="flex items-center gap-1">
               <i class="fa-solid fa-fire text-pink-500 text-xs"></i>
-              <span class="text-xs text-gray-400 font-bold">現在のメロ度:</span>
-              <span id="current-score-text" class="text-base font-black text-pink-600">0%</span>
+              <span class="text-xs text-gray-400 font-bold">現在の獲得:</span>
+              <span id="current-score-text" class="text-base font-black text-pink-600">0pt / 190pt</span>
             </div>
           </div>
           <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden border border-pink-100">
@@ -210,9 +210,9 @@
           </span>
 
           <div>
-            <p class="text-xs font-bold text-gray-400">最終メロ度</p>
+            <p class="text-xs font-bold text-gray-400">最終獲得スコア</p>
             <div class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 my-1">
-              <span id="final-score">0</span>%
+              <span id="final-score">0</span> <span class="text-2xl font-bold text-pink-500">/ 190pt</span>
             </div>
           </div>
 
@@ -272,7 +272,7 @@
   </div>
 
   <script>
-    // ユーザーが作成した全15問の初期データ
+    // 全15問の初期データ（合計最高得点: 190pt）
     const defaultQuizData = [
       {
         situation: "今日ありがとう！ 楽しかった また遊びたい",
@@ -417,6 +417,7 @@
     let totalScore = 0;
     let isUnlocked = false;
     const PIN_CODE = "01170715";
+    const MAX_POINT = 190; // 満点ポイント
 
     function switchMode(mode) {
       const playMode = document.getElementById('mode-play');
@@ -517,19 +518,10 @@
     function selectOption(option) {
       totalScore += option.score;
 
-      // 現在の質問までの最高可能得点を計算してプログレスバーを％表示
-      let maxPossibleScoreSoFar = 0;
-      for (let i = 0; i <= currentQuestionIndex; i++) {
-        const qOptions = window.quizData[i].options;
-        let maxOptScore = 0;
-        qOptions.forEach(function(o){ if(o.score > maxOptScore) maxOptScore = o.score; });
-        maxPossibleScoreSoFar += maxOptScore;
-      }
-
-      const currentPercent = maxPossibleScoreSoFar > 0 ? Math.min(100, Math.round((totalScore / maxPossibleScoreSoFar) * 100)) : 0;
-
+      // 現在の獲得ポイントとメーター表示
+      const currentPercent = Math.min(100, Math.round((totalScore / MAX_POINT) * 100));
       document.getElementById('score-bar').style.width = currentPercent + '%';
-      document.getElementById('current-score-text').innerText = currentPercent + '%';
+      document.getElementById('current-score-text').innerText = totalScore + 'pt / ' + MAX_POINT + 'pt';
 
       document.getElementById('options-container').classList.add('hidden');
       
@@ -582,50 +574,33 @@
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
-      // 全問題の最高可能得点の合計（満点）を計算
-      let maxTotalScore = 0;
-      window.quizData.forEach(function(q) {
-        let maxScoreInQ = 0;
-        q.options.forEach(function(opt) {
-          if (opt.score > maxScoreInQ) {
-            maxScoreInQ = opt.score;
-          }
-        });
-        maxTotalScore += maxScoreInQ;
-      });
-
-      // 獲得ポイントを満点に対するパーセンテージ(0~100%)に換算
-      let finalPercentage = 0;
-      if (maxTotalScore > 0) {
-        finalPercentage = Math.min(100, Math.round((totalScore / maxTotalScore) * 100));
-      }
-
       const scoreElem = document.getElementById('final-score');
       const titleElem = document.getElementById('result-title');
       const descElem = document.getElementById('result-description');
 
       let currentDisplayScore = 0;
       const timer = setInterval(function() {
-        if (currentDisplayScore >= finalPercentage) {
-          scoreElem.innerText = finalPercentage;
+        if (currentDisplayScore >= totalScore) {
+          scoreElem.innerText = totalScore;
           clearInterval(timer);
         } else {
           currentDisplayScore++;
           scoreElem.innerText = currentDisplayScore;
         }
-      }, 15);
+      }, 10);
 
-      if (finalPercentage >= 80) {
-        titleElem.innerText = "👑 限界メロ男";
+      // 190pt満点に基づくランク評価
+      if (totalScore >= 170) {
+        titleElem.innerText = "👑 限界メロ男 (170pt〜190pt)";
         descElem.innerText = "すべての言葉が女子のツボを突きまくる完璧なメロ男！一緒に入るだけで周りを胸キュンで包み込む罪な存在です。";
-      } else if (finalPercentage >= 50) {
-        titleElem.innerText = "✨ 隠れメロ男";
+      } else if (totalScore >= 120) {
+        titleElem.innerText = "✨ 隠れメロ男 (120pt〜169pt)";
         descElem.innerText = "さりげない優しさとセンスのある返しができるタイプ！ふとした瞬間の甘い一言に女子はギャップ萌えしています。";
-      } else if (finalPercentage >= 20) {
-        titleElem.innerText = "🌱 ピュアな普通男";
+      } else if (totalScore >= 60) {
+        titleElem.innerText = "🌱 ピュアな普通男 (60pt〜119pt)";
         descElem.innerText = "誠実だけどちょっぴりシャイ。もう少し甘い言葉や「特別感」を伝える工夫をすると一気にメロ度がアップします！";
       } else {
-        titleElem.innerText = "🗿 鋼鉄のストイック男";
+        titleElem.innerText = "🗿 鋼鉄のストイック男 (0pt〜59pt)";
         descElem.innerText = "正論・現実的な返しが得意なストイックタイプ！メロ度は低めですが、嘘のない信頼感で勝負するタイプです。";
       }
     }
@@ -635,12 +610,12 @@
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
       document.getElementById('score-bar').style.width = '0%';
-      document.getElementById('current-score-text').innerText = '0%';
+      document.getElementById('current-score-text').innerText = '0pt / 190pt';
     }
 
     function shareResult() {
       const title = document.getElementById('result-title').innerText;
-      const shareText = "【メロ男診断】\n私のメロ度は… 【" + document.getElementById('final-score').innerText + "%】（称号: " + title + "）でした！\n#メロ男診断";
+      const shareText = "【メロ男診断】\n私のメロポイントは… 【" + totalScore + "pt / 190pt】（称号: " + title + "）でした！\n#メロ男診断";
       const tempInput = document.createElement("textarea");
       tempInput.value = shareText;
       document.body.appendChild(tempInput);
