@@ -154,7 +154,7 @@
         <div class="bg-white/90 border-b border-pink-100 p-3 shadow-sm z-20 shrink-0">
           <div class="flex justify-between items-center mb-1.5">
             <span id="question-progress" class="text-[11px] font-bold text-pink-600 bg-pink-50 px-2.5 py-0.5 rounded-full">
-              Q 1/4
+              Q 1/15
             </span>
             <div class="flex items-center gap-1">
               <i class="fa-solid fa-fire text-pink-500 text-xs"></i>
@@ -272,45 +272,146 @@
   </div>
 
   <script>
-    // 初期クイズデータ
-    window.quizData = [
+    // ユーザーが作成した全15問の初期データ
+    const defaultQuizData = [
       {
-        situation: "「今日、すっごく楽しかったな〜！もっと一緒にいたかったかも…」",
+        situation: "今日ありがとう！ 楽しかった また遊びたい",
         options: [
-          { text: "俺も…正直、今日はまだ返したくないな", score: 25 },
-          { text: "じゃあ次どこ行く？来週開けておいて！", score: 15 },
-          { text: "俺も楽しかった！また遊ぼうね！", score: 5 },
-          { text: "終電あるから気をつけて帰ってね！", score: 0 }
+          { text: "ありがとう 俺もまた遊びたい", score: 20 },
+          { text: "ありがとー 俺も楽しかった！", score: 5 },
+          { text: "ありがとう 次いつ空いてる？", score: 25 },
+          { text: "明日学校遅れないようにね笑 おやすみ", score: 0 }
         ]
       },
       {
-        situation: "「なんか今日、ちょっと手がつめたいかも…（ちらっ）」",
+        situation: "おやすみー 明日楽しみにしてる♪",
         options: [
-          { text: "手、繋いとく？これならあったかいでしょ", score: 25 },
-          { text: "上着貸そうか？ちょっと大きいと思うけど", score: 15 },
-          { text: "自販機で温かいお茶買ってあげるよ！", score: 5 },
-          { text: "天気予報見なかったの？防寒しなきゃダメだよ", score: 0 }
+          { text: "楽しみで寝れないかも笑", score: 5 },
+          { text: "俺も おやすみ", score: 20 },
+          { text: "おやすみ また明日", score: 25 },
+          { text: "いい夢みてね おやすみ", score: 0 }
         ]
       },
       {
-        situation: "「ねぇ…〇〇くんって、他の女の子にもこんな風に優しいの？」",
+        situation: "元カノとかいるの？",
         options: [
-          { text: "〇〇ちゃんだから特別なんだけど…気づいてなかった？", score: 25 },
-          { text: "うーん、どうだろう？内緒（笑）", score: 15 },
-          { text: "誰にでも優しくするのは普通でしょ！", score: 5 },
-          { text: "特に何も意識してないけど変かな？", score: 0 }
+          { text: "いないよ笑", score: 3 },
+          { text: "1人いるよ", score: 25 },
+          { text: "まじでモテない笑", score: 0 },
+          { text: "1人いるけどなんも覚えてない笑", score: 0 }
         ]
       },
       {
-        situation: "「前髪ちょっと切ったんだけど、気づいた…？（じっと見つめてくる）」",
+        situation: "髪切ったんだけど気づいた？",
         options: [
-          { text: "もちろん！似合っててめちゃくちゃ可愛いよ", score: 25 },
-          { text: "雰囲気変わったと思った！大人っぽくなったね", score: 15 },
-          { text: "え！ごめん気づかなかった！", score: 0 },
-          { text: "前の方が好きだったかも〜（笑）", score: 0 }
+          { text: "気づいてたよ笑 似合ってる", score: 15 },
+          { text: "まじで良かった みんな可愛いって言ってた", score: 0 },
+          { text: "ちらっと見た 明日ちゃんと見る", score: 25 },
+          { text: "破壊力エグかったよ 可愛いね", score: 0 }
+        ]
+      },
+      {
+        situation: "趣味とかある？いつも何してるの",
+        options: [
+          { text: "特にないんだよね笑 アニメとか？", score: 10 },
+          { text: "ずっとスマホ見てる笑", score: 3 },
+          { text: "しょうもないことばっかしてる気がする", score: 25 },
+          { text: "服見るのとか好きなんだよね", score: 0 }
+        ]
+      },
+      {
+        situation: "タイプとかある？",
+        options: [
+          { text: "好きになった人がタイプだよ", score: 5 },
+          { text: "黒髪ボブかなー", score: 0 },
+          { text: "話してて楽しい人", score: 15 },
+          { text: "よく笑う人が好き", score: 20 }
+        ]
+      },
+      {
+        situation: "アイドル好きなんだ！誰推し？",
+        options: [
+          { text: "まなふぃ", score: 20 },
+          { text: "野口衣織", score: 15 },
+          { text: "tenちゃん", score: 5 },
+          { text: "ウィンター", score: 0 }
+        ]
+      },
+      {
+        situation: "アニメとか見るんだ！オススメは？",
+        options: [
+          { text: "BLEACHかな", score: 25 },
+          { text: "無職転生 面白いよ", score: 0 },
+          { text: "ジョジョかな みんなかっこいい", score: 10 },
+          { text: "ブルーロック", score: 0 }
+        ]
+      },
+      {
+        situation: "デートの服装は？",
+        options: [
+          { text: "ロングコートとタートルネックで大人っぽく", score: 10 },
+          { text: "パーカーとカーゴパンツでストリート系に", score: 2 },
+          { text: "シャツとカーディガンでインテリ系に", score: 0 },
+          { text: "シャツとセーターを重ね着して意識高めに", score: 20 }
+        ]
+      },
+      {
+        situation: "野球好きなんだ！好きな球団は？",
+        options: [
+          { text: "阪神かな 親が好きで昔から", score: 25 },
+          { text: "ベイスターズ！ よく現地も行くよ", score: 15 },
+          { text: "ソフトバンク 最近優勝したよ", score: 5 },
+          { text: "日本ハムかな 新庄いるとこわかる？", score: 0 }
+        ]
+      },
+      {
+        situation: "テストの点数何点だった？（100点満点）",
+        options: [
+          { text: "勝負しよ笑 俺16点", score: 0 },
+          { text: "やばすぎて言えない笑（30点）", score: 0 },
+          { text: "平均くらい", score: 10 },
+          { text: "思ったより良かったかも（90点）", score: 25 }
+        ]
+      },
+      {
+        situation: "今日の服、どう？",
+        options: [
+          { text: "可愛い", score: 25 },
+          { text: "似合ってる", score: 15 },
+          { text: "俺の好きな感じだ", score: 0 },
+          { text: "まじで良い", score: 0 }
+        ]
+      },
+      {
+        situation: "バンドはじめたらなんの楽器がいい？",
+        options: [
+          { text: "ギターボーカル", score: 0 },
+          { text: "ベース", score: 20 },
+          { text: "ドラム", score: 15 },
+          { text: "キーボード", score: 0 }
+        ]
+      },
+      {
+        situation: "彼女の誕生日プレゼントにあげるものは？",
+        options: [
+          { text: "リファのコーム", score: 0 },
+          { text: "アイシャドウパレット", score: 0 },
+          { text: "お揃いのマフラー", score: 15 },
+          { text: "ちょっと高めのピアス", score: 25 }
+        ]
+      },
+      {
+        situation: "どこの塾行ってるの？",
+        options: [
+          { text: "臨海セミナー", score: 0 },
+          { text: "河合塾", score: 15 },
+          { text: "東進", score: 5 },
+          { text: "駿台", score: 25 }
         ]
       }
     ];
+
+    window.quizData = JSON.parse(JSON.stringify(defaultQuizData));
 
     let currentQuestionIndex = 0;
     let totalScore = 0;
@@ -415,10 +516,20 @@
 
     function selectOption(option) {
       totalScore += option.score;
-      if (totalScore > 100) totalScore = 100;
 
-      document.getElementById('score-bar').style.width = totalScore + '%';
-      document.getElementById('current-score-text').innerText = totalScore + '%';
+      // 現在の質問までの最高可能得点を計算してプログレスバーを％表示
+      let maxPossibleScoreSoFar = 0;
+      for (let i = 0; i <= currentQuestionIndex; i++) {
+        const qOptions = window.quizData[i].options;
+        let maxOptScore = 0;
+        qOptions.forEach(function(o){ if(o.score > maxOptScore) maxOptScore = o.score; });
+        maxPossibleScoreSoFar += maxOptScore;
+      }
+
+      const currentPercent = maxPossibleScoreSoFar > 0 ? Math.min(100, Math.round((totalScore / maxPossibleScoreSoFar) * 100)) : 0;
+
+      document.getElementById('score-bar').style.width = currentPercent + '%';
+      document.getElementById('current-score-text').innerText = currentPercent + '%';
 
       document.getElementById('options-container').classList.add('hidden');
       
@@ -430,14 +541,14 @@
       
       if (option.score >= 20) {
         feedbackText.className = "text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full bg-pink-100 text-pink-600";
-        feedbackText.innerText = "[メロ度 +" + option.score + "%] 最高の一言！女子はメロメロ✨";
+        feedbackText.innerText = "[メロ度 +" + option.score + "pt] 最高の一言！女子はメロメロ✨";
         createHearts();
       } else if (option.score > 0) {
         feedbackText.className = "text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-600";
-        feedbackText.innerText = "[メロ度 +" + option.score + "%] 悪くない返事！好感度アップ";
+        feedbackText.innerText = "[メロ度 +" + option.score + "pt] 悪くない返事！好感度アップ";
       } else {
         feedbackText.className = "text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-500";
-        feedbackText.innerText = "[メロ度 +0%] メロ要素なし！不器用な返事";
+        feedbackText.innerText = "[メロ度 +0pt] メロ要素なし！不器用な返事";
       }
 
       replyContainer.classList.remove('hidden');
@@ -471,14 +582,32 @@
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
+      // 全問題の最高可能得点の合計（満点）を計算
+      let maxTotalScore = 0;
+      window.quizData.forEach(function(q) {
+        let maxScoreInQ = 0;
+        q.options.forEach(function(opt) {
+          if (opt.score > maxScoreInQ) {
+            maxScoreInQ = opt.score;
+          }
+        });
+        maxTotalScore += maxScoreInQ;
+      });
+
+      // 獲得ポイントを満点に対するパーセンテージ(0~100%)に換算
+      let finalPercentage = 0;
+      if (maxTotalScore > 0) {
+        finalPercentage = Math.min(100, Math.round((totalScore / maxTotalScore) * 100));
+      }
+
       const scoreElem = document.getElementById('final-score');
       const titleElem = document.getElementById('result-title');
       const descElem = document.getElementById('result-description');
 
       let currentDisplayScore = 0;
       const timer = setInterval(function() {
-        if (currentDisplayScore >= totalScore) {
-          scoreElem.innerText = totalScore;
+        if (currentDisplayScore >= finalPercentage) {
+          scoreElem.innerText = finalPercentage;
           clearInterval(timer);
         } else {
           currentDisplayScore++;
@@ -486,13 +615,13 @@
         }
       }, 15);
 
-      if (totalScore >= 80) {
+      if (finalPercentage >= 80) {
         titleElem.innerText = "👑 限界メロ男";
         descElem.innerText = "すべての言葉が女子のツボを突きまくる完璧なメロ男！一緒に入るだけで周りを胸キュンで包み込む罪な存在です。";
-      } else if (totalScore >= 50) {
+      } else if (finalPercentage >= 50) {
         titleElem.innerText = "✨ 隠れメロ男";
         descElem.innerText = "さりげない優しさとセンスのある返しができるタイプ！ふとした瞬間の甘い一言に女子はギャップ萌えしています。";
-      } else if (totalScore >= 20) {
+      } else if (finalPercentage >= 20) {
         titleElem.innerText = "🌱 ピュアな普通男";
         descElem.innerText = "誠実だけどちょっぴりシャイ。もう少し甘い言葉や「特別感」を伝える工夫をすると一気にメロ度がアップします！";
       } else {
@@ -511,7 +640,7 @@
 
     function shareResult() {
       const title = document.getElementById('result-title').innerText;
-      const shareText = "【メロ男診断】\n私のメロ度は… 【" + totalScore + "%】（称号: " + title + "）でした！\n#メロ男診断";
+      const shareText = "【メロ男診断】\n私のメロ度は… 【" + document.getElementById('final-score').innerText + "%】（称号: " + title + "）でした！\n#メロ男診断";
       const tempInput = document.createElement("textarea");
       tempInput.value = shareText;
       document.body.appendChild(tempInput);
